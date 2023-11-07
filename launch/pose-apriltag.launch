@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<launch>
+    <node pkg="pose-apriltag" type="pose-apriltag" name="pose_node" output="screen">
+    </node>
+</launch>
