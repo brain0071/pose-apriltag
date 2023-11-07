@@ -11,11 +11,15 @@
 #include <chrono>
 #include <future>
 #include <math.h>
+#include <typeinfo>
 
 #include "apriltag.h"
 #include "apriltag_pose.h"
 #include "common/homography.h"
 #include "tag36h11.h"
+
+#include "pose_apriltag/AprilTagDetection.h"
+#include "pose_apriltag/AprilTagDetectionArray.h"
 
 #define FORMAT_VALUE std::fixed << std::right << std::setprecision(3) << std::setw(6)
 
@@ -33,6 +37,7 @@ static transformation to_transform(const double R[9], const double t[3])
   {
     tf.translation[i] = static_cast<float>(t[i]);
   }
+
   return tf;
 }
 
@@ -131,6 +136,7 @@ public:
     int get_id(int t) const { return get(t)->id; }
     int size() const { return pose_in_camera.size(); }
   };
+
   static void apriltag_pose_destroy(apriltag_pose_t *p)
   {
     matd_destroy(p->R);
@@ -180,6 +186,7 @@ protected:
   void compute_tag_pose_in_world(apriltag_array_t &tags, const rs2_pose &camera_world_pose) const
   {
     tags.pose_in_world.resize(tags.size());
+
     for (int t = 0, num_of_tags = tags.size(); t < num_of_tags; ++t)
     {
       auto tf_fisheye_to_tag = tags.pose_in_camera[t];
@@ -221,12 +228,9 @@ protected:
 int main(int argc, char **argv)
 try
 {
-
-  ros::init(argc, argv, "talker");
+  ros::init(argc, argv, "pub_apriltag");
   ros::NodeHandle n;
-  ros::Publisher chatter_pub = n.advertise<std_msgs::String>("chatter", 1000);
-  // ros::Rate loop_rate(10);
-  
+  ros::Publisher pub_apriltag = n.advertise<pose_apriltag::AprilTagDetectionArray>("apriltag_pose_array", 1000);
 
   // Declare RealSense pipeline, encapsulating the actual device and sensors
   rs2::pipeline pipe;
@@ -250,9 +254,9 @@ try
   auto fisheye_stream = pipe_profile.get_stream(RS2_STREAM_FISHEYE, fisheye_sensor_idx);
   auto fisheye_intrinsics = fisheye_stream.as<rs2::video_stream_profile>().get_intrinsics();
   auto body_fisheye_extr = fisheye_stream.get_extrinsics_to(pipe_profile.get_stream(RS2_STREAM_POSE));
-  
+
   // apriltag size
-  const double tag_size_m = 0.1; // The expected size of the tag in meters. This is required to get the relative pose
+  const double tag_size_m = 0.10; // The expected size of the tag in meters. This is required to get the relative pose
 
   // Create an Apriltag detection manager
   apriltag_manager tag_manager(fisheye_intrinsics, body_fisheye_extr, tag_size_m);
@@ -264,30 +268,52 @@ try
     auto fisheye_frame = frames.get_fisheye_frame(fisheye_sensor_idx);
     auto frame_number = fisheye_frame.get_frame_number();
     auto camera_pose = frames.get_pose_frame().get_pose_data();
-
+    
     if (frame_number % 6 == 0)
     {
       fisheye_frame.keep();
-
-      std::async(std::launch::async, std::bind([&tag_manager](rs2::frame img, int fn, rs2_pose pose)
+      std::async(std::launch::async, std::bind([&tag_manager, &pub_apriltag](rs2::frame img, int fn, rs2_pose pose)
+                                               
                                                {
-                auto tags = tag_manager.detect((unsigned char*)img.get_data(), &pose);
+                                                 auto tags = tag_manager.detect((unsigned char *)img.get_data(), &pose);
 
-                if(tags.pose_in_camera.size() == 0) {
-                    std::cout << "frame " << fn << "|no Apriltag detections" << std::endl;
-                }
-                for(int t=0; t<tags.pose_in_camera.size(); ++t){
-                    std::stringstream ss; ss << "frame " << fn << "|tag id: " << tags.get_id(t) << "|";
-                    std::cout << ss.str() << "camera " << print(tags.pose_in_camera[t]) << std::endl;
-                    std::cout << std::setw(ss.str().size()) << " " << "world  " <<
-                                (pose.tracker_confidence == 3 ? print(tags.pose_in_world[t]) : " NA ") << std::endl << std::endl;
-                } },
+                                                 if (tags.pose_in_camera.size() == 0)
+                                                 {
+                                                   std::cout << "frame " << fn << "|no Apriltag detections" << std::endl;
+                                                 }
+
+                                                 // naodai
+                                                 pose_apriltag::AprilTagDetectionArray tag_detection_array;
+
+                                                 for (int t = 0; t < tags.pose_in_camera.size(); ++t)
+                                                 {
+                                                   std::stringstream ss;
+                                                   ss << "frame " << fn << "|tag id: " << tags.get_id(t) << "|";
+                                                   std::cout << ss.str() << "camera " << print(tags.pose_in_camera[t]) << std::endl;
+                                                  //  std::cout << tags.pose_in_camera[t].translation[0] << std::endl;
+                                                  //  std::cout << tags.pose_in_camera[t].translation[1] << std::endl;
+                                                  //  std::cout << tags.pose_in_camera[t].translation[2] << std::endl;
+
+                                                   // pos
+                                                   geometry_msgs::Vector3 tag_pos;
+                                                   tag_pos.x = tags.pose_in_camera[t].translation[0];
+                                                   tag_pos.y = tags.pose_in_camera[t].translation[1];
+                                                   tag_pos.z = tags.pose_in_camera[t].translation[2];
+
+                                                   pose_apriltag::AprilTagDetection tag_detection;
+                                                   tag_detection.pos = tag_pos;
+                                                   tag_detection.id.push_back(tags.get_id(t));
+                                                   tag_detection.size.push_back(0.1);
+                                                   tag_detection_array.detections.push_back(tag_detection);
+
+                                                   // std::cout << std::setw(ss.str().size()) << " " << "world  " <<
+                                                   // (pose.tracker_confidence == 3 ? print(tags.pose_in_world[t]) : " NA ") << std::endl << std::endl;
+                                                 }
+                                                 pub_apriltag.publish(tag_detection_array);
+
+                                               },
                                                fisheye_frame, frame_number, camera_pose));
     }
-    // test
-    std_msgs::String msg;
-    msg.data = "Hello World";
-    chatter_pub.publish(msg);
   }
   return EXIT_SUCCESS;
 }
