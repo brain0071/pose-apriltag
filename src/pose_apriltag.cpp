@@ -297,12 +297,12 @@ try
                                                      std::cout << ss.str() << "camera " << print(tags.pose_in_camera[t]) << std::endl;
                                                     
 
-                                                     std::cout << "pose in camera" << endl;
+                                                     std::cout << "pose in camera" << std::endl;
                                                      std::cout << tags.pose_in_camera[t].translation[0] << std::endl;
                                                      std::cout << tags.pose_in_camera[t].translation[1] << std::endl;
                                                      std::cout << tags.pose_in_camera[t].translation[2] << std::endl;
 
-                                                     std::cout << "pose in world" << endl;
+                                                     std::cout << "pose in world" << std::endl;
                                                      std::cout << tags.pose_in_world[t].translation[0] << std::endl;
                                                      std::cout << tags.pose_in_world[t].translation[1] << std::endl;
                                                      std::cout << tags.pose_in_world[t].translation[2] << std::endl;
