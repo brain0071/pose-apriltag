@@ -295,9 +295,17 @@ try
                                                      std::stringstream ss;
                                                      ss << "frame " << fn << "|tag id: " << tags.get_id(t) << "|";
                                                      std::cout << ss.str() << "camera " << print(tags.pose_in_camera[t]) << std::endl;
-                                                     //  std::cout << tags.pose_in_camera[t].translation[0] << std::endl;
-                                                     //  std::cout << tags.pose_in_camera[t].translation[1] << std::endl;
-                                                     //  std::cout << tags.pose_in_camera[t].translation[2] << std::endl;
+                                                    
+
+                                                     std::cout << "pose in camera" << endl;
+                                                     std::cout << tags.pose_in_camera[t].translation[0] << std::endl;
+                                                     std::cout << tags.pose_in_camera[t].translation[1] << std::endl;
+                                                     std::cout << tags.pose_in_camera[t].translation[2] << std::endl;
+
+                                                     std::cout << "pose in world" << endl;
+                                                     std::cout << tags.pose_in_world[t].translation[0] << std::endl;
+                                                     std::cout << tags.pose_in_world[t].translation[1] << std::endl;
+                                                     std::cout << tags.pose_in_world[t].translation[2] << std::endl;
 
                                                      // pos
                                                      geometry_msgs::Vector3 tag_pos;
@@ -308,7 +316,7 @@ try
                                                      pose_apriltag::AprilTagDetection tag_detection;
                                                      tag_detection.pos = tag_pos;
                                                      tag_detection.id.push_back(tags.get_id(t));
-                                                     tag_detection.size.push_back(0.03);
+                                                     tag_detection.size.push_back(0.10);
                                                      tag_detection_array.detections.push_back(tag_detection);
 
                                                      // std::cout << std::setw(ss.str().size()) << " " << "world  " <<
