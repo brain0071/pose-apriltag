@@ -256,7 +256,7 @@ try
   auto body_fisheye_extr = fisheye_stream.get_extrinsics_to(pipe_profile.get_stream(RS2_STREAM_POSE));
 
   // apriltag size
-  const double tag_size_m = 0.03; // The expected size of the tag in meters. This is required to get the relative pose
+  const double tag_size_m = 0.10; // The expected size of the tag in meters. This is required to get the relative pose
 
   // Create an Apriltag detection manager
   apriltag_manager tag_manager(fisheye_intrinsics, body_fisheye_extr, tag_size_m);
