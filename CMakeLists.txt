@@ -32,11 +32,11 @@ generate_messages(
 # location share lib, find apriltag.so
 link_directories(
   ${catkin_LIB_DIRS}
-  /home/naodai/apriltag/lib
+  /home/dlmux/apriltag/lib
 )
 
 catkin_package(
-  INCLUDE_DIRS include
+  #INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS 
   message_runtime
@@ -48,7 +48,7 @@ catkin_package(
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
-  /home/naodai/apriltag/include/apriltag
+  /home/dlmux/apriltag/include/apriltag
   # /usr/include/eigen3
 )
 add_executable(pose_apriltag src/pose_apriltag.cpp)
