@@ -295,16 +295,16 @@ try
                                                    for (int t = 0; t < tags.pose_in_camera.size(); ++t)
                                                    {
                                                      std::stringstream ss;
-                                                     ss << "frame " << fn << "|tag id: " << tags.get_id(t) << "|";
-                                                     std::cout << ss.str() << "camera " << print(tags.pose_in_camera[t]) << std::endl;
+                                                    //  ss << "frame " << fn << "|tag id: " << tags.get_id(t) << "|";
+                                                    //  std::cout << ss.str() << "camera " << print(tags.pose_in_camera[t]) << std::endl;
                                                      
                                                      // X pointing right
                                                      // Y pointing back
                                                      // Z pointing up
-                                                     std::cout << "pose in camera" << std::endl;
-                                                     std::cout << tags.pose_in_camera[t].translation[0] << std::endl;
-                                                     std::cout << tags.pose_in_camera[t].translation[1] << std::endl;
-                                                     std::cout << tags.pose_in_camera[t].translation[2] << std::endl;
+                                                    //  std::cout << "pose in camera" << std::endl;
+                                                    //  std::cout << tags.pose_in_camera[t].translation[0] << std::endl;
+                                                    //  std::cout << tags.pose_in_camera[t].translation[1] << std::endl;
+                                                    //  std::cout << tags.pose_in_camera[t].translation[2] << std::endl;
 
                                   
                                                      // pos
