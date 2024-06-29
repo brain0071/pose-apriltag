@@ -269,7 +269,9 @@ try
     auto frame_number = fisheye_frame.get_frame_number();
     auto camera_pose = frames.get_pose_frame().get_pose_data();
 
-    if (frame_number % 6 == 0)
+    // naodai:20240629 30hz 
+    // if (frame_number % 6 == 0)
+    if (frame_number > 0)
     {
       fisheye_frame.keep();
       std::async(std::launch::async, std::bind([&tag_manager, &pub_apriltag](rs2::frame img, int fn, rs2_pose pose)
