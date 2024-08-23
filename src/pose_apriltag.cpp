@@ -19,7 +19,6 @@
 #include "tag36h11.h"
 
 #include "pose_apriltag/AprilTagDetection.h"
-#include "pose_apriltag/AprilTagDetectionArray.h"
 
 #define FORMAT_VALUE std::fixed << std::right << std::setprecision(3) << std::setw(6)
 
@@ -230,7 +229,7 @@ try
 {
   ros::init(argc, argv, "pub_apriltag");
   ros::NodeHandle n;
-  ros::Publisher pub_apriltag = n.advertise<pose_apriltag::AprilTagDetectionArray>("apriltag_pose_array", 1000);
+  ros::Publisher pub_apriltag = n.advertise<pose_apriltag::AprilTagDetection>("apriltag_pose", 1000);
 
   // Declare RealSense pipeline, encapsulating the actual device and sensors
   rs2::pipeline pipe;
@@ -269,8 +268,6 @@ try
     auto frame_number = fisheye_frame.get_frame_number();
     auto camera_pose = frames.get_pose_frame().get_pose_data();
 
-    // naodai:20240629 30hz 
-    // if (frame_number % 6 == 0)
     if (frame_number > 0)
     {
       fisheye_frame.keep();
@@ -284,60 +281,21 @@ try
                                                    std::cout << "frame " << fn << "|no Apriltag detections" << std::endl;
                                                  }
 
-
                                                  if (tags.pose_in_camera.size() != 0)
-                                                 {
-                                                   // naodai
-                                                   pose_apriltag::AprilTagDetectionArray tag_detection_array;
-                                                   
+                                                 { 
                                                    tag_detection_array.num = tags.pose_in_camera.size();
-                                                   
                                                    for (int t = 0; t < tags.pose_in_camera.size(); ++t)
                                                    {
-                                                     std::stringstream ss;
-                                                    //  ss << "frame " << fn << "|tag id: " << tags.get_id(t) << "|";
-                                                    //  std::cout << ss.str() << "camera " << print(tags.pose_in_camera[t]) << std::endl;
-                                                     
-                                                     // X pointing right
-                                                     // Y pointing back
-                                                     // Z pointing up
-                                                    //  std::cout << "pose in camera" << std::endl;
-                                                    //  std::cout << tags.pose_in_camera[t].translation[0] << std::endl;
-                                                    //  std::cout << tags.pose_in_camera[t].translation[1] << std::endl;
-                                                    //  std::cout << tags.pose_in_camera[t].translation[2] << std::endl;
-
-                                  
+                                                    std::stringstream ss;
                                                      // pos
                                                      geometry_msgs::Vector3 tag_pos;
-                                                    //  tag_pos.x = tags.pose_in_camera[t].translation[0];
-                                                    //  tag_pos.y = tags.pose_in_camera[t].translation[1];
-                                                    //  tag_pos.z = tags.pose_in_camera[t].translation[2];
-
-                                                     // Camera coordinate  
-                                                     // X pointing right
-                                                     // Y pointing back
-                                                     // Z pointing up
-
-                                                     // Xsens coordinate (ENU)
-                                                     // X pointing east (forward)
-                                                     // Y pointing north (left)
-                                                     // Z pointing up (up)
-                                                     
                                                      // from Camera coordinate to Xsens coordinate 
                                                      tag_pos.x = -tags.pose_in_camera[t].translation[1];
                                                      tag_pos.y = -tags.pose_in_camera[t].translation[0]; 
                                                      tag_pos.z = tags.pose_in_camera[t].translation[2];
-
-                                                     pose_apriltag::AprilTagDetection tag_detection;
-                                                     tag_detection.pos = tag_pos;
-                                                     tag_detection.id.push_back(tags.get_id(t));
-                                                     tag_detection.size.push_back(0.10);
-                                                     tag_detection_array.detections.push_back(tag_detection);
-
-                                                     // std::cout << std::setw(ss.str().size()) << " " << "world  " <<
-                                                     // (pose.tracker_confidence == 3 ? print(tags.pose_in_world[t]) : " NA ") << std::endl << std::endl;
+                                                     pub_apriltag.publish(tag_pos);
                                                    }
-                                                   pub_apriltag.publish(tag_detection_array);
+                                                  
                                                  }
                                                },
                                                fisheye_frame, frame_number, camera_pose));
